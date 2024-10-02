@@ -1,10 +1,14 @@
 import subprocess
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Semaphore
 
 # Define the threshold
 THRESHOLD = 0.15
 MAX_PARALLEL = 12  # Limit to 12 parallel processes
+
+# Semaphore to limit concurrency
+semaphore = Semaphore(MAX_PARALLEL)
 
 # Get the channels from the lncli command
 def get_channels():
@@ -20,37 +24,38 @@ def get_channels():
 
 # Rebalance channels below threshold
 def rebalance_channel(channel):
-    peer_alias = channel["peer_alias"]
-    local_balance = int(channel["local_balance"])
-    capacity = int(channel["capacity"])
-    chan_id = channel["chan_id"]
+    with semaphore:  # Ensure that at most 12 processes run at a time
+        peer_alias = channel["peer_alias"]
+        local_balance = int(channel["local_balance"])
+        capacity = int(channel["capacity"])
+        chan_id = channel["chan_id"]
 
-    # If the local balance is below 85% of capacity, rebalance
-    if local_balance < capacity * THRESHOLD:
-        print(f"Found Channel with Peer: {peer_alias} local balance below threshold, starting rebalance procedures.")
+        # If the local balance is below 85% of capacity, rebalance
+        if local_balance < capacity * THRESHOLD:
+            print(f"Found Channel with Peer: {peer_alias} local balance below threshold, starting rebalance procedures.")
 
-        # Create the config file path and command
-        config_file_name = "/root/go/bin/.regolancer/default.json"
-        log_file = f"rebal-{peer_alias}.log"
-        regolancer_command = [
-            "/root/go/bin/regolancer", "--config", config_file_name, "--to", chan_id,
-            "--node-cache-filename", log_file, "--allow-rapid-rebalance"
-        ]
+            # Create the config file path and command
+            config_file_name = "/root/go/bin/.regolancer/default.json"
+            log_file = f"rebal-{peer_alias}.log"
+            regolancer_command = [
+                "/root/go/bin/regolancer", "--config", config_file_name, "--to", chan_id,
+                "--node-cache-filename", log_file
+            ]
 
-        # Start the rebalance process
-        subprocess.run(regolancer_command)
+            # Start the rebalance process
+            subprocess.run(regolancer_command)
 
 def main():
     channels = get_channels()
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as executor:
-        # Submit tasks for each channel
-        futures = [
-            executor.submit(rebalance_channel, channel)
-            for channel in channels if channel["active"]
-        ]
-        # Wait for all to complete
+        futures = []
+        for channel in channels:
+            if channel["active"]:
+                futures.append(executor.submit(rebalance_channel, channel))
+        
+        # Wait for all tasks to complete
         for future in as_completed(futures):
-            future.result()  # Block until the task is done
+            future.result()
 
 if __name__ == "__main__":
     main()
