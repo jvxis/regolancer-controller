@@ -11,6 +11,10 @@ def get_channels():
     command = [
         "/media/jvx/Umbrel-JV1/scripts/app", "compose", "lightning", "exec", "lnd", "lncli", "listchannels"
     ]
+    # For non-umbrel install uncomment the 3 lines below and comment the 3 lines above
+    #command = [
+    #    "lncli", "listchannels"
+    #]
     result = subprocess.run(command, capture_output=True, text=True)
     return json.loads(result.stdout)["channels"]
 
@@ -30,7 +34,7 @@ def rebalance_channel(channel):
         log_file = f"rebal-{peer_alias}.log"
         regolancer_command = [
             "/root/go/bin/regolancer", "--config", config_file_name, "--to", chan_id,
-            "--node-cache-filename", log_file
+            "--node-cache-filename", log_file, "--allow-rapid-rebalance"
         ]
 
         # Start the rebalance process
