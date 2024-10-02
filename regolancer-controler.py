@@ -30,7 +30,7 @@ def rebalance_channel(channel):
         capacity = int(channel["capacity"])
         chan_id = channel["chan_id"]
 
-        # If the local balance is below 85% of capacity, rebalance
+        # If the local balance is below 15% of capacity, rebalance
         if local_balance < capacity * THRESHOLD:
             print(f"Found Channel with Peer: {peer_alias} local balance below threshold, starting rebalance procedures.")
 
@@ -39,7 +39,7 @@ def rebalance_channel(channel):
             log_file = f"rebal-{peer_alias}.log"
             regolancer_command = [
                 "/root/go/bin/regolancer", "--config", config_file_name, "--to", chan_id,
-                "--node-cache-filename", log_file
+                "--node-cache-filename", log_file, "--allow-rapid-rebalance"
             ]
 
             # Start the rebalance process
