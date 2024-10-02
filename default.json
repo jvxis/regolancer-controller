@@ -1,0 +1,21 @@
+{
+    "macaroon_dir": "/your/path/to/",
+    "macaroon_filename": "admin.macaroon",
+    "network": "mainnet",
+    "tlscert": "/your/pathto/lnd/tls.cert",
+    "econ_ratio": 0.75,
+    "amount": 201000,
+    "min_amount": 5000,
+    "probe_steps": 15,
+    "pfrom": 40,
+    "stat": "stats-auto-rebal.csv",
+    "lost_profit": true,
+    "from": [
+    ],
+    "to": [
+    ],
+    "timeout_rebalance": 900,
+    "timeout_attempt": 60,
+    "timeout_info": 30,
+    "timeout_route": 180
+}
