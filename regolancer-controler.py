@@ -5,6 +5,7 @@ import time
 import configparser
 import os
 import logging
+import threading
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -25,7 +26,6 @@ logs_directory = os.path.join(regolancer_directory, 'logs')
 if not os.path.exists(logs_directory):
     os.makedirs(logs_directory)
 
-# Configuração do logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -102,6 +102,7 @@ def main():
         ch for ch in channels if ch.get("active") and int(ch["local_balance"]) < int(ch["capacity"]) * THRESHOLD
     ]
     queue = channels_to_process[:] 
+    in_progress_rebalances = []
 
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as executor:
         future_to_channel = {}
@@ -111,7 +112,11 @@ def main():
                 channel = queue.pop(0)
                 future = executor.submit(rebalance_channel, channel)
                 future_to_channel[future] = channel
-                logging.info(f"Submitted rebalance task for Peer: {channel['peer_alias']}")
+                in_progress_rebalances.append(channel['peer_alias'])
+                logging.info(f"Submitted rebalance task for Peer: {channel['peer_alias']} (Thread ID: {threading.get_ident()})")
+
+                logging.info(f"Rebalances in progress: {in_progress_rebalances}")
+                logging.info(f"Active threads: {threading.active_count()}")
 
             for future in as_completed(future_to_channel):
                 channel = future_to_channel.pop(future)
@@ -120,9 +125,11 @@ def main():
 
                 try:
                     result = future.result()
-                    logging.info(f"Rebalance process for Peer: {peer_alias} completed with result: {result}")
+                    logging.info(f"Rebalance process for Peer: {peer_alias} completed with result: {result} (Thread ID: {threading.get_ident()})")
                 except Exception as e:
-                    logging.error(f"Error in rebalance process for Peer: {peer_alias}: {e}")
+                    logging.error(f"Error in rebalance process for Peer: {peer_alias}: {e} (Thread ID: {threading.get_ident()})")
+
+                in_progress_rebalances.remove(peer_alias)
 
                 time.sleep(PAUSE_DURATION)
 
@@ -133,12 +140,18 @@ def main():
                 else:
                     logging.info(f"Peer: {peer_alias} is now above threshold.")
 
+                logging.info(f"Rebalances in progress: {in_progress_rebalances}")
+                logging.info(f"Active threads after task completion: {threading.active_count()}")
+
             if not future_to_channel and not queue:
                 logging.info("All channels processed, rechecking for any channels still below threshold.")
                 updated_channels = get_channels()
                 queue = [
                     ch for ch in updated_channels if ch.get("active") and int(ch["local_balance"]) < int(ch["capacity"]) * THRESHOLD
                 ]
+
+            logging.info(f"Rebalances in progress at end of loop: {in_progress_rebalances}")
+            logging.info(f"Active threads at end of loop: {threading.active_count()}")
 
 if __name__ == "__main__":
     main()
