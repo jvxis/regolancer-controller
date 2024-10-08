@@ -2,18 +2,25 @@ import subprocess
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+import configparser
+import os
 
-# Define the threshold and max parallel tasks
-THRESHOLD = 0.15
-MAX_PARALLEL = 12  # Limit to 12 parallel processes
-PAUSE_DURATION = 300  # Pause for 5 minutes (300 seconds)
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+regolancer_directory = os.path.dirname(os.path.abspath(__file__))
+json_relative_path = config['paths']['JSON_PATH']
+regolancer_bin_path = os.path.join(regolancer_directory, "go/bin/regolancer")
+
+THRESHOLD = float(config['parameters']['THRESHOLD'])
+MAX_PARALLEL = int(config['parameters']['MAX_PARALLEL'])
+PAUSE_DURATION = int(config['parameters']['PAUSE_DURATION'])
+GET_CHANNELS = config.get('commands', 'GET_CHANNELS').split()
+JSON_PATH = os.path.join(regolancer_directory, json_relative_path)
 
 # Get the channels from the lncli command
 def get_channels():
-    command = [
-        "/media/jvx/Umbrel-JV1/scripts/app", "compose", "lightning", "exec", "lnd", "lncli", "listchannels"
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = subprocess.run(GET_CHANNELS, capture_output=True, text=True)
     return json.loads(result.stdout)["channels"]
 
 # Rebalance channels below threshold
@@ -29,10 +36,9 @@ def rebalance_channel(channel):
         print(f"Starting rebalance for Peer: {peer_alias}")
         
         # Create the config file path and command
-        config_file_name = "/root/go/bin/.regolancer/default.json"
         log_file = f"rebal-{peer_alias}.log"
         regolancer_command = [
-            "/root/go/bin/regolancer", "--config", config_file_name, "--to", chan_id,
+            regolancer_bin_path, "--config", JSON_PATH, "--to", chan_id,
             "--node-cache-filename", log_file, "--allow-rapid-rebalance"
         ]
 
