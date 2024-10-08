@@ -2,6 +2,30 @@
 
 This repository provides a Python script that automates the rebalancing of Lightning Network channels using Regolancer for LND nodes. The script monitors your channels and automatically triggers rebalancing for those below a specified threshold.
 
+## Table of Contents
+
+1. [Features](#features)
+2. [Requirements](#requirements)
+3. [Installation](#installation)  
+   3.1 [Clone the Repository](#1-clone-the-repository)  
+   3.2 [Ensure Regolancer is Installed](#2-ensure-regolancer-is-installed)
+4. [Configuration](#configuration)  
+   4.1 [default.json](#defaultjson)  
+   4.2 [config.ini](#configini)
+5. [Instructions](#instructions)  
+   5.1 [Listing Your Channels](#1-listing-your-channels)  
+   5.2 [Managing Channel Configurations](#2-managing-channel-configurations)  
+   5.3 [Start a Screen Session](#3-start-a-screen-session)  
+   5.4 [Run the Script](#4-run-the-script)  
+   5.5 [Detach from the Screen Session](#5-detach-from-the-screen-session)  
+   5.6 [Reattach to the Screen Session](#6-reattach-to-the-screen-session)  
+   5.7 [Logging Rebalancing Activity](#7-logging-rebalancing-activity)
+6. [How It Works](#how-it-works)
+7. [Customization](#customization)
+8. [Logging](#logging)
+9. [Contributing](#contributing)
+10. [Bonus: Viewing the SQLite Database with VSCode](#bonus-viewing-the-sqlite-database-with-vscode)
+
 ## Features
 
 - **Automated Channel Rebalancing:** Identifies channels with a local balance below a defined threshold and rebalances them using Regolancer.
@@ -115,7 +139,8 @@ screen -r regolancer
 #### 7. Logging Rebalancing Activity
 The database.py script logs rebalancing activity into a SQLite database and calculates rebalancing rates.
 
-**Setting Up database.py in Crontab**
+**Setting Up database.py in Crontab:**
+
 To automate the logging process, add database.py to your crontab to run every 15 minutes:
 
 - Open your crontab file:
@@ -163,7 +188,7 @@ You can use Visual Studio Code (VSCode) to view and manage the SQLite database g
 
 ### Steps:
 
-#### 1. Install Visual Studio Code if you haven't already. Download it from here.
+#### 1. Install Visual Studio Code if you haven't already. Download it [from here](https://code.visualstudio.com/Download).
 
 #### 2. Install a SQLite Extension:
 
