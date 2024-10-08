@@ -1,16 +1,18 @@
 {
-    "macaroon_dir": "/your/path/to/",
+    "macaroon_dir": "/data/lnd/data/chain/bitcoin/mainnet/",
     "macaroon_filename": "admin.macaroon",
     "network": "mainnet",
-    "tlscert": "/your/pathto/lnd/tls.cert",
-    "econ_ratio": 0.75,
+    "tlscert": "/data/lnd/tls.cert",
+    "econ_ratio": 0.80,
     "amount": 201000,
     "min_amount": 5000,
     "probe_steps": 15,
-    "pfrom": 40,
+    "allow-rapid-rebalance": true,
+    "pfrom": 90,
+    "pto": 30,
     "stat": "stats-auto-rebal.csv",
     "lost_profit": true,
-    "from": [
+    "exclude_from": [
     ],
     "to": [
     ],
