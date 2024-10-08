@@ -18,19 +18,15 @@ PAUSE_DURATION = int(config['parameters']['PAUSE_DURATION'])
 GET_CHANNELS = config.get('commands', 'GET_CHANNELS').split()
 JSON_PATH = os.path.join(regolancer_directory, json_relative_path)
 
-# **Novo código para definir o diretório de logs**
 logs_directory = os.path.join(regolancer_directory, 'logs')
 
-# Garantir que o diretório de logs existe
 if not os.path.exists(logs_directory):
     os.makedirs(logs_directory)
 
-# Função para obter os canais usando o comando lncli
 def get_channels():
     result = subprocess.run(GET_CHANNELS, capture_output=True, text=True)
     return json.loads(result.stdout)["channels"]
 
-# Rebalancear canais abaixo do limite
 def rebalance_channel(channel):
     peer_alias = channel["peer_alias"]
     local_balance = int(channel["local_balance"])
@@ -42,24 +38,20 @@ def rebalance_channel(channel):
     if local_balance < capacity * THRESHOLD:
         print(f"Starting rebalance for Peer: {peer_alias}")
         
-        # Criar o caminho completo para o arquivo de log dentro da pasta logs
         log_file = os.path.join(logs_directory, f"rebal-{peer_alias}.log")
 
-        # Criar o comando do regolancer
         regolancer_command = [
             regolancer_bin_path, "--config", JSON_PATH, "--to", chan_id,
             "--node-cache-filename", log_file, "--allow-rapid-rebalance"
         ]
 
-        # Iniciar o processo de rebalanceamento
         process = subprocess.Popen(regolancer_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()  # Aguarda o processo terminar
+        stdout, stderr = process.communicate()
         print(f"Rebalance process for Peer: {peer_alias} finished with status {process.returncode}")
         print(f"STDOUT: {stdout.decode()}")
         print(f"STDERR: {stderr.decode()}")
         return process.returncode
 
-# Verificar se o canal ainda precisa de rebalanceamento
 def channel_still_below_threshold(chan_id):
     channels = get_channels()
     for channel in channels:
