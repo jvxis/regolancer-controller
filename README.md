@@ -98,11 +98,13 @@ This command will output your channel IDs into a file called channels_list.txt, 
 
 #### 2. Managing Channel Configurations
 **Adding Channels to Configuration**
-To add channel IDs to your Regolancer configuration:
+To add channel IDs to your Regolancer configuration. 
+This list will put the ID as "exclude_from" and "to", i.e., will try to use other channels to fill the ones on this list.
+If you have a channel that you want to fill, HERE IS THE SCRIPT TO MAKE THIS HAPPEN.
 ```
 python3 addpeers.py
 ```
-- The script will prompt you to enter the channel IDs you wish to add, separated by commas.
+- The script will prompt you to enter the channel IDs you wish to add to the list, separated by commas.
 - It will update default.json, adding the specified channel IDs to the exclude_from and to lists.
 
 **Removing Channels from Configuration**
