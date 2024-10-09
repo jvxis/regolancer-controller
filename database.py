@@ -15,6 +15,7 @@ config.read(os.path.join(script_directory, 'config.ini'))
 
 DB_PATH = os.path.join(script_directory, config['paths']['DB_PATH'])
 REGOLANCER_DIR = script_directory
+GET_CHANNELS = config.get('commands', 'GET_CHANNELS').split()
 
 def setup_database(db_path):
     conn = sqlite3.connect(db_path)
@@ -117,7 +118,7 @@ def calculate_and_update_rebal_rate(conn):
     logging.info("Rebal rate updates committed successfully.")
 
 def update_peers_table(conn):
-    result = subprocess.run(['lncli', 'listchannels'], capture_output=True, text=True)
+    result = subprocess.run(GET_CHANNELS, capture_output=True, text=True, check=True)
     if result.returncode != 0:
         logging.error("Error obtaining channel list. Ensure lncli is configured correctly.")
         return
